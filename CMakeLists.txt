@@ -1,0 +1,31 @@
+cmake_minimum_required(VERSION 3.16)
+project(myers VERSION 0.1.0 LANGUAGES CXX)
+
+option(MYERS_BUILD_TESTS "Build the test binary" ON)
+option(MYERS_BUILD_TOOLS "Build the command line tool" ON)
+
+add_library(myers src/edit_distance.cpp)
+add_library(myers::myers ALIAS myers)
+target_include_directories(myers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(myers PUBLIC cxx_std_17)
+set_target_properties(myers PROPERTIES CXX_EXTENSIONS OFF)
+
+if(MSVC)
+  target_compile_options(myers PRIVATE /W4)
+else()
+  target_compile_options(myers PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+if(MYERS_BUILD_TESTS)
+  enable_testing()
+  add_executable(myers_tests tests/test_edit_distance.cpp)
+  target_link_libraries(myers_tests PRIVATE myers)
+  set_target_properties(myers_tests PROPERTIES CXX_EXTENSIONS OFF)
+  add_test(NAME myers_tests COMMAND myers_tests)
+endif()
+
+if(MYERS_BUILD_TOOLS)
+  add_executable(myers_cli tools/myers.cpp)
+  target_link_libraries(myers_cli PRIVATE myers)
+  set_target_properties(myers_cli PROPERTIES CXX_EXTENSIONS OFF OUTPUT_NAME myers)
+endif()
